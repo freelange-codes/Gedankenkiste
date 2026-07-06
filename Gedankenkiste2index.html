@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gedankenkiste">
+<title>Gedankenkiste</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%232A2622'/%3E%3Crect x='18' y='30' width='64' height='46' rx='4' fill='%23F2ECDD'/%3E%3Crect x='18' y='30' width='64' height='10' rx='4' fill='%23C9A227'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%232A2622'/%3E%3Crect x='18' y='30' width='64' height='46' rx='4' fill='%23F2ECDD'/%3E%3Crect x='18' y='30' width='64' height='10' rx='4' fill='%23C9A227'/%3E%3C/svg%3E">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --desk:#2A2622;
+  --desk-dark:#211E1B;
+  --paper:#F2ECDD;
+  --paper-edge:#E4DCC6;
+  --ink:#2A2622;
+  --ink-soft:#6B6255;
+  --brass:#C9A227;
+  --brass-dark:#A9861D;
+  --danger:#B5654A;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0; background:var(--desk); color:var(--paper); font-family:'IBM Plex Sans',sans-serif; height:100%; overflow-x:hidden;}
+body{padding-bottom:env(safe-area-inset-bottom);}
+h1,h2,h3{font-family:'Fraunces',serif; margin:0; font-weight:600;}
+
+/* Header */
+.header{padding:22px 18px 10px; position:sticky; top:0; background:linear-gradient(var(--desk) 85%, transparent); z-index:20;}
+.header h1{font-size:1.5rem; letter-spacing:0.01em;}
+.header .sub{color:var(--ink-soft); font-size:0.85rem; margin-top:2px;}
+.gear{position:absolute; top:22px; right:18px; background:none; border:none; color:var(--paper); font-size:1.3rem; cursor:pointer; opacity:0.8;}
+
+/* Capture card */
+.capture-wrap{padding:6px 18px 14px;}
+.capture-card{background:var(--paper); border-radius:6px; padding:14px 14px 10px; box-shadow:0 8px 20px rgba(0,0,0,0.35), inset 0 0 0 1px var(--paper-edge); position:relative;}
+.capture-card::before{content:''; position:absolute; top:0; right:0; width:0; height:0; border-style:solid; border-width:0 16px 16px 0; border-color:transparent var(--desk) transparent transparent; opacity:0.15;}
+.capture-card textarea{width:100%; border:none; background:transparent; resize:none; font-family:'IBM Plex Sans',sans-serif; font-size:1rem; color:var(--ink); min-height:64px; outline:none; line-height:1.4;}
+.capture-card textarea::placeholder{color:#A69D89;}
+.capture-foot{display:flex; align-items:center; justify-content:space-between; margin-top:4px;}
+.mic-hint{font-size:0.72rem; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
+.file-btn{background:var(--brass); color:var(--desk-dark); border:none; padding:9px 18px; border-radius:20px; font-weight:600; font-size:0.88rem; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;}
+.file-btn:active{background:var(--brass-dark);}
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--paper); color:var(--ink); padding:10px 18px; border-radius:20px; font-size:0.85rem; opacity:0; transition:all 0.25s ease; z-index:100; box-shadow:0 6px 20px rgba(0,0,0,0.4); pointer-events:none;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* Tabs - rolodex */
+.tabs{display:flex; gap:6px; padding:4px 18px 0; overflow-x:auto; scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto; padding:9px 16px 11px; font-size:0.82rem; font-weight:500; color:var(--desk); cursor:pointer; border:none; clip-path:polygon(10% 0,90% 0,100% 100%,0% 100%); transform:translateY(6px); transition:transform 0.15s ease; white-space:nowrap;}
+.tab.active{transform:translateY(0); font-weight:600;}
+.tab .count{opacity:0.65; font-size:0.75em; margin-left:4px;}
+
+/* Entries */
+.entries{padding:16px 18px 100px;}
+.folder-tools{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+.folder-tools .label{font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-soft);}
+.export-btn{background:var(--brass); color:var(--desk-dark); border:none; padding:7px 14px; border-radius:16px; font-size:0.78rem; font-weight:600; cursor:pointer;}
+.export-hint{font-size:0.72rem; color:var(--ink-soft); margin:-4px 0 12px;}
+
+.card{background:var(--paper); border-radius:5px; padding:13px 14px; margin-bottom:10px; box-shadow:0 4px 10px rgba(0,0,0,0.25); position:relative;}
+.card::after{content:''; position:absolute; bottom:0; right:0; width:0; height:0; border-style:solid; border-width:0 0 12px 12px; border-color:transparent transparent var(--paper-edge) transparent;}
+.card .text{color:var(--ink); font-size:0.95rem; line-height:1.45; white-space:pre-wrap;}
+.card .meta{display:flex; align-items:center; justify-content:space-between; margin-top:8px;}
+.card .time{font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-soft);}
+.card .chip{display:inline-block; font-size:0.68rem; background:var(--desk); color:var(--paper); padding:2px 8px; border-radius:10px; margin-right:6px;}
+.card .del{background:none; border:none; color:var(--ink-soft); font-size:0.9rem; cursor:pointer; padding:2px 6px;}
+.card .datebar{display:flex; gap:8px; margin-top:8px;}
+.card .datebar input{font-family:'IBM Plex Mono',monospace; font-size:0.78rem; border:1px solid var(--paper-edge); background:#fff; border-radius:4px; padding:5px 6px; color:var(--ink);}
+.card .nodate{font-size:0.72rem; color:var(--danger); margin-top:6px;}
+
+.empty{text-align:center; padding:50px 20px; color:var(--ink-soft);}
+.empty .big{font-size:2.4rem; margin-bottom:8px;}
+
+/* Modal (settings) */
+.modal-bg{position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:none; align-items:flex-end;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--desk); width:100%; max-height:85vh; overflow-y:auto; border-radius:18px 18px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom));}
+.modal h2{font-size:1.15rem; margin-bottom:14px;}
+.modal .close{position:absolute; top:16px; right:18px; background:none; border:none; color:var(--paper); font-size:1.4rem;}
+.folder-row{background:var(--desk-dark); border-radius:10px; padding:12px; margin-bottom:10px;}
+.folder-row .frow-head{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.swatch{width:14px; height:14px; border-radius:3px; flex:0 0 auto;}
+.folder-row input[type=text], .folder-row textarea{width:100%; background:var(--desk); border:1px solid #453F38; color:var(--paper); border-radius:6px; padding:7px 9px; font-size:0.85rem; font-family:'IBM Plex Sans',sans-serif; margin-bottom:6px;}
+.folder-row textarea{resize:vertical; min-height:40px;}
+.folder-row .frow-foot{display:flex; justify-content:space-between; align-items:center;}
+.small-btn{background:none; border:1px solid #453F38; color:var(--paper); padding:5px 10px; border-radius:14px; font-size:0.72rem; cursor:pointer;}
+.small-btn.danger{color:var(--danger); border-color:var(--danger);}
+.add-folder-btn{width:100%; background:var(--brass); color:var(--desk-dark); border:none; padding:11px; border-radius:10px; font-weight:600; margin-top:6px; cursor:pointer;}
+.color-picker{display:flex; gap:6px; margin-bottom:6px;}
+.color-picker .dot{width:20px; height:20px; border-radius:5px; cursor:pointer; border:2px solid transparent;}
+.color-picker .dot.sel{border-color:var(--paper);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Gedankenkiste</h1>
+  <div class="sub">Schreib's rein — sie legt's ab.</div>
+  <button class="gear" onclick="openSettings()">⚙︎</button>
+</div>
+
+<div class="capture-wrap">
+  <div class="capture-card">
+    <textarea id="captureInput" placeholder="Ein Gedanke, ein Gefühl, ein Termin ... einfach tippen oder diktieren." rows="3"></textarea>
+    <div class="capture-foot">
+      <div class="mic-hint">🎙️ Mikrofon auf der Tastatur = diktieren</div>
+      <button class="file-btn" onclick="handleCapture()">Ablegen</button>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="entries" id="entries"></div>
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <button class="close" onclick="closeSettings()">×</button>
+    <h2>Ordner &amp; Stichwörter</h2>
+    <div id="folderList"></div>
+    <button class="add-folder-btn" onclick="addFolderDraft()">+ Neuen Ordner anlegen</button>
+  </div>
+</div>
+
+<script>
+const PALETTE = ['#6B8F71','#B5654A','#4B6E8C','#C9A227','#8B8478','#7A5C8E','#5C8C8C','#A65C5C'];
+
+const DEFAULT_FOLDERS = [
+  {id:'termine',   name:'Termine',    color:'#C9A227', keywords:['termin','uhr','meeting','treffen','verabredung','sitzung']},
+  {id:'gefuehle',  name:'Gefühle',    color:'#B5654A', keywords:['fühle mich','gefühl','traurig','glücklich','wütend','angst','freude','frustriert','dankbar','überfordert']},
+  {id:'arbeit',    name:'Arbeit',     color:'#4B6E8C', keywords:['arbeit','projekt','kunde','kollege','chef','büro','aufgabe','deadline','job']},
+  {id:'tagesreport',name:'Tagesreport',color:'#6B8F71', keywords:['tagesreport','heute war','rückblick','zusammenfassung tag','mein tag']},
+  {id:'sonstiges', name:'Sonstiges',  color:'#8B8478', keywords:[]}
+];
+
+let state = {folders: JSON.parse(JSON.stringify(DEFAULT_FOLDERS)), entries: []};
+let activeTab = 'termine';
+let draftFolders = null; // used while settings modal open
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem('gedankenkiste-state');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed.folders && parsed.entries){ state = parsed; }
+    }
+  }catch(e){ /* erster Start, noch keine Daten */ }
+  render();
+}
+
+function saveState(){
+  try{ localStorage.setItem('gedankenkiste-state', JSON.stringify(state)); }
+  catch(e){ console.error('Speichern fehlgeschlagen', e); }
+}
+
+function pad(n){ return n.toString().padStart(2,'0'); }
+function formatDate(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function addDays(d,n){ const c=new Date(d); c.setDate(c.getDate()+n); return c; }
+
+function parseGermanDateTime(text){
+  const lower = text.toLowerCase();
+  const now = new Date();
+  let date=null, time=null;
+  const weekdays = ['sonntag','montag','dienstag','mittwoch','donnerstag','freitag','samstag'];
+
+  if(/\bübermorgen\b/.test(lower)) date = formatDate(addDays(now,2));
+  else if(/\bmorgen\b/.test(lower)) date = formatDate(addDays(now,1));
+  else if(/\bheute\b/.test(lower)) date = formatDate(now);
+  else{
+    for(let i=0;i<weekdays.length;i++){
+      if(lower.includes(weekdays[i])){
+        let diff = (i - now.getDay() + 7) % 7;
+        if(diff===0) diff=7;
+        date = formatDate(addDays(now, diff));
+        break;
+      }
+    }
+  }
+  const dm = lower.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})?/);
+  if(dm){
+    const day = +dm[1], month = +dm[2];
+    let year = dm[3] ? (dm[3].length===2 ? 2000+ +dm[3] : +dm[3]) : now.getFullYear();
+    date = `${year}-${pad(month)}-${pad(day)}`;
+  }
+  let tm = lower.match(/(\d{1,2})[:\.](\d{2})\s*uhr?/) || lower.match(/um\s+(\d{1,2})\s*uhr/) || lower.match(/\b(\d{1,2})\s*uhr\b/);
+  if(tm){
+    const hh = +tm[1];
+    const mm = tm[2] ? +tm[2] : 0;
+    time = `${pad(hh)}:${pad(mm)}`;
+  }
+  return {date, time};
+}
+
+function extractHashtag(text){
+  const m = text.match(/#(\w{2,20})/);
+  return m ? m[1] : null;
+}
+
+function categorize(text){
+  const lower = text.toLowerCase();
+  for(const f of state.folders){
+    if(f.id==='sonstiges') continue;
+    for(const kw of f.keywords){
+      if(kw && lower.includes(kw.toLowerCase())) return f.id;
+    }
+  }
+  return 'sonstiges';
+}
+
+function handleCapture(){
+  const input = document.getElementById('captureInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const folderId = categorize(text);
+  const subfolder = extractHashtag(text);
+  const entry = {
+    id: 'e' + Date.now() + Math.random().toString(36).slice(2,6),
+    text, folderId, subfolder,
+    createdAt: new Date().toISOString(),
+    date: null, time: null
+  };
+  if(folderId === 'termine'){
+    const parsed = parseGermanDateTime(text);
+    entry.date = parsed.date;
+    entry.time = parsed.time;
+  }
+  state.entries.unshift(entry);
+  saveState();
+  input.value = '';
+  activeTab = folderId;
+  const fname = state.folders.find(f=>f.id===folderId)?.name || folderId;
+  showToast(`In "${fname}" abgelegt`);
+  render();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+function deleteEntry(id){
+  state.entries = state.entries.filter(e=>e.id!==id);
+  saveState();
+  render();
+}
+
+function updateEntryDate(id, field, value){
+  const e = state.entries.find(x=>x.id===id);
+  if(e){ e[field] = value; saveState(); }
+}
+
+function render(){
+  renderTabs();
+  renderEntries();
+}
+
+function renderTabs(){
+  const wrap = document.getElementById('tabs');
+  wrap.innerHTML = '';
+  state.folders.forEach(f=>{
+    const count = state.entries.filter(e=>e.folderId===f.id).length;
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (activeTab===f.id ? ' active' : '');
+    btn.style.background = f.color;
+    btn.innerHTML = `${f.name}<span class="count">${count}</span>`;
+    btn.onclick = ()=>{ activeTab = f.id; render(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function escapeICS(str){
+  return str.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+
+function exportAllTermine(){
+  const items = state.entries.filter(e=>e.folderId==='termine');
+  const withDate = items.filter(e=>e.date);
+  const withoutDate = items.length - withDate.length;
+  if(withDate.length===0){
+    showToast('Keine Termine mit Datum zum Exportieren');
+    return;
+  }
+  let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Gedankenkiste//DE\r\nCALSCALE:GREGORIAN\r\n';
+  withDate.forEach(e=>{
+    const time = e.time || '09:00';
+    const [y,m,d] = e.date.split('-');
+    const [hh,mm] = time.split(':');
+    const startStr = `${y}${m}${d}T${pad(+hh)}${pad(+mm)}00`;
+    const endDate = new Date(+y, +m-1, +d, +hh, +mm);
+    endDate.setHours(endDate.getHours()+1);
+    const endStr = `${endDate.getFullYear()}${pad(endDate.getMonth()+1)}${pad(endDate.getDate())}T${pad(endDate.getHours())}${pad(endDate.getMinutes())}00`;
+    const summary = escapeICS(e.text.split('\n')[0].slice(0,80));
+    const desc = escapeICS(e.text);
+    ics += `BEGIN:VEVENT\r\nUID:${e.id}@gedankenkiste\r\nDTSTAMP:${startStr}\r\nDTSTART:${startStr}\r\nDTEND:${endStr}\r\nSUMMARY:${summary}\r\nDESCRIPTION:${desc}\r\nEND:VEVENT\r\n`;
+  });
+  ics += 'END:VCALENDAR\r\n';
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'termine.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+  showToast(withoutDate>0 ? `${withDate.length} Termine exportiert, ${withoutDate} ohne Datum übersprungen` : `${withDate.length} Termine exportiert`);
+}
+
+function renderEntries(){
+  const wrap = document.getElementById('entries');
+  const folder = state.folders.find(f=>f.id===activeTab);
+  const items = state.entries.filter(e=>e.folderId===activeTab);
+
+  let html = '';
+  if(activeTab==='termine'){
+    html += `<div class="folder-tools"><span class="label">${items.length} Eintrag(e)</span><button class="export-btn" onclick="exportAllTermine()">Alle Termine exportieren</button></div>`;
+    html += `<div class="export-hint">Erzeugt eine Datei mit allen erkannten Terminen. Nach dem Download antippen, um sie gesammelt in den Kalender zu übernehmen.</div>`;
+  }
+
+  if(items.length===0){
+    wrap.innerHTML = html + `<div class="empty"><div class="big">🗂️</div>Noch nichts in „${folder?.name || ''}“.</div>`;
+    return;
+  }
+
+  items.forEach(e=>{
+    const d = new Date(e.createdAt);
+    const stamp = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    html += `<div class="card">
+      <div class="text">${e.text.replace(/</g,'&lt;')}</div>`;
+    if(activeTab==='termine'){
+      html += `<div class="datebar">
+        <input type="date" value="${e.date || ''}" onchange="updateEntryDate('${e.id}','date',this.value)">
+        <input type="time" value="${e.time || ''}" onchange="updateEntryDate('${e.id}','time',this.value)">
+      </div>`;
+      if(!e.date) html += `<div class="nodate">Kein Datum erkannt — bitte oben ergänzen</div>`;
+    }
+    html += `<div class="meta">
+        <span>${e.subfolder ? `<span class="chip">#${e.subfolder}</span>` : ''}<span class="time">${stamp}</span></span>
+        <button class="del" onclick="deleteEntry('${e.id}')">löschen</button>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+/* ---- Settings ---- */
+function openSettings(){
+  draftFolders = JSON.parse(JSON.stringify(state.folders));
+  renderSettings();
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeSettings(){
+  document.getElementById('modalBg').classList.remove('show');
+}
+function saveSettings(){
+  state.folders = draftFolders.filter(f=>f.name.trim().length>0);
+  saveState();
+  render();
+}
+function renderSettings(){
+  const wrap = document.getElementById('folderList');
+  wrap.innerHTML = '';
+  draftFolders.forEach((f, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'folder-row';
+    row.innerHTML = `
+      <div class="frow-head">
+        <span class="swatch" style="background:${f.color}"></span>
+        <input type="text" value="${f.name}" placeholder="Ordnername" style="margin:0;" onchange="updateDraft(${idx},'name',this.value)">
+      </div>
+      <textarea placeholder="Stichwörter, mit Komma getrennt" onchange="updateDraft(${idx},'keywords',this.value)">${f.keywords.join(', ')}</textarea>
+      <div class="color-picker">${PALETTE.map(c=>`<span class="dot ${c===f.color?'sel':''}" style="background:${c}" onclick="updateDraft(${idx},'color','${c}')"></span>`).join('')}</div>
+      <div class="frow-foot">
+        <span></span>
+        ${f.id!=='sonstiges' ? `<button class="small-btn danger" onclick="removeDraft(${idx})">Ordner löschen</button>` : '<span></span>'}
+      </div>`;
+    wrap.appendChild(row);
+  });
+}
+function updateDraft(idx, field, value){
+  if(field==='keywords'){
+    draftFolders[idx].keywords = value.split(',').map(s=>s.trim()).filter(Boolean);
+  } else {
+    draftFolders[idx][field] = value;
+  }
+  if(field==='color') renderSettings();
+  saveSettings();
+}
+function removeDraft(idx){
+  const removedId = draftFolders[idx].id;
+  draftFolders.splice(idx,1);
+  state.entries.forEach(e=>{ if(e.folderId===removedId) e.folderId='sonstiges'; });
+  if(activeTab===removedId) activeTab='sonstiges';
+  saveSettings();
+  renderSettings();
+}
+function addFolderDraft(){
+  const id = 'f' + Date.now();
+  draftFolders.push({id, name:'Neuer Ordner', color: PALETTE[draftFolders.length % PALETTE.length], keywords:[]});
+  saveSettings();
+  renderSettings();
+}
+
+loadState();
+</script>
+</body>
+</html>
