@@ -7,154 +7,380 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gedankenkiste">
 <title>Gedankenkiste</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%232A2622'/%3E%3Crect x='18' y='30' width='64' height='46' rx='4' fill='%23F2ECDD'/%3E%3Crect x='18' y='30' width='64' height='10' rx='4' fill='%23C9A227'/%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%232A2622'/%3E%3Crect x='18' y='30' width='64' height='46' rx='4' fill='%23F2ECDD'/%3E%3Crect x='18' y='30' width='64' height='10' rx='4' fill='%23C9A227'/%3E%3C/svg%3E">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230A84FF'/%3E%3Cstop offset='1' stop-color='%23FF9F0A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='50' r='24' fill='white' fill-opacity='0.25'/%3E%3C/svg%3E">
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
 :root{
-  --desk:#2A2622;
-  --desk-dark:#211E1B;
-  --paper:#F2ECDD;
-  --paper-edge:#E4DCC6;
-  --ink:#2A2622;
-  --ink-soft:#6B6255;
-  --brass:#C9A227;
-  --brass-dark:#A9861D;
-  --danger:#B5654A;
+  --bg-base:#050408;
+  --glass-fill: rgba(255,255,255,0.15);
+  --glass-fill-strong: rgba(255,255,255,0.24);
+  --glass-border: rgba(255,255,255,0.30);
+  --glass-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  --text-primary:#FFFFFF;
+  --text-secondary: rgba(255,255,255,0.72);
+  --text-tertiary: rgba(255,255,255,0.48);
+  --sys-blue:#0A84FF;
+  --sys-orange:#FF9F0A;
+  --sys-pink:#FF375F;
+  --sys-green:#30D158;
+  --sys-gray:#8E8E93;
+  --sys-purple:#BF5AF2;
+  --sys-teal:#64D2FF;
+  --danger:#FF453A;
+  --radius-lg:28px;
+  --radius-md:20px;
+  --radius-sm:14px;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-html,body{margin:0; padding:0; background:var(--desk); color:var(--paper); font-family:'IBM Plex Sans',sans-serif; height:100%; overflow-x:hidden;}
-body{padding-bottom:env(safe-area-inset-bottom);}
-h1,h2,h3{font-family:'Fraunces',serif; margin:0; font-weight:600;}
+html{font-size:17px;}
+html,body{margin:0; padding:0; background:var(--bg-base); color:var(--text-primary);
+  font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  height:100%; overflow-x:hidden; -webkit-font-smoothing:antialiased;}
+body{padding-bottom:env(safe-area-inset-bottom); position:relative; min-height:100vh;}
 
-/* Header */
-.header{padding:22px 18px 10px; position:sticky; top:0; background:linear-gradient(var(--desk) 85%, transparent); z-index:20;}
-.header h1{font-size:1.5rem; letter-spacing:0.01em;}
-.header .sub{color:var(--ink-soft); font-size:0.85rem; margin-top:2px;}
-.gear{position:absolute; top:22px; right:18px; background:none; border:none; color:var(--paper); font-size:1.3rem; cursor:pointer; opacity:0.8;}
+.bg-blobs{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+.blob{position:absolute; border-radius:50%; filter:blur(70px); opacity:0.32; mix-blend-mode:screen; will-change:transform;}
+.blob-1{width:70vw; height:70vw; background:radial-gradient(circle, var(--sys-blue), transparent 70%); top:-20vw; left:-15vw; animation:float1 26s ease-in-out infinite;}
+.blob-2{width:60vw; height:60vw; background:radial-gradient(circle, var(--sys-purple), transparent 70%); bottom:-15vw; right:-20vw; animation:float2 32s ease-in-out infinite;}
+.blob-3{width:55vw; height:55vw; background:radial-gradient(circle, var(--sys-orange), transparent 70%); top:30vh; right:-15vw; animation:float3 38s ease-in-out infinite;}
+@keyframes float1{0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(8vw,10vh) scale(1.15);}}
+@keyframes float2{0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-10vw,-6vh) scale(1.1);}}
+@keyframes float3{0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-6vw,8vh) scale(0.9);}}
+@media (prefers-reduced-motion: reduce){ .blob{animation:none;} }
+.bg-scrim{position:fixed; inset:0; z-index:0; background:radial-gradient(ellipse at 50% 0%, rgba(5,4,8,0.25), rgba(5,4,8,0.72) 65%);}
 
-/* Capture card */
-.capture-wrap{padding:6px 18px 14px;}
-.capture-card{background:var(--paper); border-radius:6px; padding:14px 14px 10px; box-shadow:0 8px 20px rgba(0,0,0,0.35), inset 0 0 0 1px var(--paper-edge); position:relative;}
-.capture-card::before{content:''; position:absolute; top:0; right:0; width:0; height:0; border-style:solid; border-width:0 16px 16px 0; border-color:transparent var(--desk) transparent transparent; opacity:0.15;}
-.capture-card textarea{width:100%; border:none; background:transparent; resize:none; font-family:'IBM Plex Sans',sans-serif; font-size:1rem; color:var(--ink); min-height:64px; outline:none; line-height:1.4;}
-.capture-card textarea::placeholder{color:#A69D89;}
-.capture-foot{display:flex; align-items:center; justify-content:space-between; margin-top:4px;}
-.mic-hint{font-size:0.72rem; color:var(--ink-soft); display:flex; align-items:center; gap:5px;}
-.file-btn{background:var(--brass); color:var(--desk-dark); border:none; padding:9px 18px; border-radius:20px; font-weight:600; font-size:0.88rem; cursor:pointer; font-family:'IBM Plex Sans',sans-serif;}
-.file-btn:active{background:var(--brass-dark);}
-.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--paper); color:var(--ink); padding:10px 18px; border-radius:20px; font-size:0.85rem; opacity:0; transition:all 0.25s ease; z-index:100; box-shadow:0 6px 20px rgba(0,0,0,0.4); pointer-events:none;}
+.app{position:relative; z-index:1; max-width:560px; margin:0 auto;}
+
+.glass{
+  background:var(--glass-fill);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+.top-bar{display:flex; align-items:flex-start; justify-content:space-between; padding:calc(env(safe-area-inset-top) + 20px) 20px 10px;}
+.large-title{font-size:clamp(2rem, 6vw, 2.5rem); font-weight:750; letter-spacing:-0.02em; margin:0; text-shadow:0 1px 4px rgba(0,0,0,0.5);}
+.large-title .sub{display:block; font-size:0.9rem; font-weight:500; color:var(--text-secondary); margin-top:3px; letter-spacing:0; text-shadow:0 1px 3px rgba(0,0,0,0.5);}
+.icon-btn{width:56px; height:56px; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:var(--text-primary); cursor:pointer; transition:transform 0.12s ease-out, filter 0.12s ease-out; flex:0 0 auto;}
+.icon-btn:active{transform:scale(0.88); filter:brightness(0.8);}
+
+.capture-wrap{padding:6px 16px 16px;}
+.capture-card{border-radius:var(--radius-lg); padding:18px 18px 14px;}
+.capture-card textarea{width:100%; border:none; background:transparent; resize:none; font-family:inherit; font-size:1.15rem; color:var(--text-primary); min-height:72px; outline:none; line-height:1.5; text-shadow:0 1px 2px rgba(0,0,0,0.3);}
+.capture-card textarea::placeholder{color:var(--text-tertiary);}
+.preview-pill{display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; font-weight:700; padding:6px 14px; border-radius:16px; margin:3px 0 9px; max-width:100%; opacity:0; transform:translateY(-4px); transition:all 0.22s ease; pointer-events:none;}
+.preview-pill.show{opacity:1; transform:translateY(0);}
+.capture-foot{display:flex; align-items:center; justify-content:space-between; margin-top:6px; gap:10px;}
+.mic-hint{font-size:0.78rem; color:var(--text-secondary); display:flex; align-items:center; gap:5px;}
+.glass-btn{border:none; padding:13px 24px; border-radius:22px; font-weight:700; font-size:1rem; cursor:pointer; font-family:inherit; color:var(--text-primary); transition:transform 0.12s ease-out, filter 0.12s ease-out;}
+.glass-btn:active{transform:scale(0.94); filter:brightness(0.85);}
+.glass-btn.primary{background:linear-gradient(135deg, var(--sys-blue), #5AC8FA); box-shadow:0 4px 16px rgba(10,132,255,0.45);}
+.glass-btn.brass{background:linear-gradient(135deg, var(--sys-orange), #FFD60A); color:#231A00; box-shadow:0 4px 16px rgba(255,159,10,0.45);}
+
+.tabbar-wrap{padding:0 16px 8px;}
+.tabbar{position:relative; display:flex; gap:2px; border-radius:24px; padding:5px; overflow-x:auto; scrollbar-width:none;}
+.tabbar::-webkit-scrollbar{display:none;}
+.tab-indicator{position:absolute; top:5px; left:5px; height:calc(100% - 10px); border-radius:19px; background:var(--glass-fill-strong); box-shadow:inset 0 1px 0 rgba(255,255,255,0.45), 0 2px 12px rgba(0,0,0,0.35); transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1), width 0.45s cubic-bezier(0.34,1.56,0.64,1); z-index:0;}
+.tab{position:relative; z-index:1; flex:0 0 auto; padding:11px 18px; font-size:0.94rem; font-weight:650; color:var(--text-secondary); background:none; border:none; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:7px; transition:color 0.25s ease, transform 0.12s ease-out;}
+.tab:active{transform:scale(0.93);}
+.tab.active{color:var(--text-primary); text-shadow:0 1px 2px rgba(0,0,0,0.4);}
+.tab .dot{width:8px; height:8px; border-radius:50%;}
+.tab .count{font-size:0.78em; color:var(--text-tertiary);}
+
+.chip-row{display:flex; gap:7px; padding:11px 16px 0; overflow-x:auto; scrollbar-width:none;}
+.chip-row::-webkit-scrollbar{display:none;}
+.chip{flex:0 0 auto; padding:8px 15px; border-radius:16px; font-size:0.84rem; font-weight:650; color:var(--text-secondary); cursor:pointer; transition:transform 0.12s ease-out, filter 0.12s ease-out, color 0.2s ease;}
+.chip:active{transform:scale(0.92);}
+.chip.active{color:var(--text-primary); background:var(--glass-fill-strong);}
+
+.entries{padding:18px 16px 120px;}
+.folder-tools{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:10px;}
+.folder-tools .label{font-size:0.8rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-secondary); font-weight:700;}
+.export-hint{font-size:0.78rem; color:var(--text-secondary); margin:-6px 0 14px;}
+
+.card{border-radius:var(--radius-md); padding:16px 17px; margin-bottom:12px; position:relative;}
+.card.fly-in{animation:flyIn 0.55s cubic-bezier(0.22,1,0.36,1);}
+@keyframes flyIn{0%{opacity:0; transform:translateY(46px) scale(0.88);} 60%{opacity:1;} 100%{opacity:1; transform:translateY(0) scale(1);}}
+@media (prefers-reduced-motion: reduce){ .card.fly-in{animation:none;} }
+.card .text{color:var(--text-primary); font-size:1.05rem; line-height:1.52; white-space:pre-wrap; text-shadow:0 1px 2px rgba(0,0,0,0.35);}
+.card .meta{display:flex; align-items:center; justify-content:space-between; margin-top:10px;}
+.card .time{font-variant-numeric:tabular-nums; font-size:0.78rem; color:var(--text-secondary);}
+.card .chip-tag{display:inline-block; font-size:0.72rem; font-weight:700; background:var(--glass-fill-strong); color:var(--text-secondary); padding:4px 10px; border-radius:11px; margin-right:6px;}
+.card .del{background:none; border:none; color:var(--text-secondary); font-size:0.9rem; cursor:pointer; padding:4px 7px; transition:transform 0.12s ease-out, color 0.15s ease;}
+.card .del:active{transform:scale(0.85); color:var(--danger);}
+.card .datebar{display:flex; gap:9px; margin-top:10px;}
+.card .datebar input{font-family:inherit; font-variant-numeric:tabular-nums; font-size:0.86rem; border:1px solid var(--glass-border); background:rgba(255,255,255,0.1); border-radius:9px; padding:7px 9px; color:var(--text-primary); color-scheme:dark;}
+.card .nodate{font-size:0.78rem; color:#FF7A8A; margin-top:8px; font-weight:600;}
+
+.empty{text-align:center; padding:64px 20px; color:var(--text-secondary);}
+.empty .big{font-size:2.8rem; margin-bottom:12px; opacity:0.85;}
+
+.toast{position:fixed; bottom:calc(24px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%) translateY(20px); padding:12px 22px; border-radius:20px; font-size:0.92rem; font-weight:700; opacity:0; transition:all 0.3s cubic-bezier(0.22,1,0.36,1); z-index:300; pointer-events:none;}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-/* Tabs - rolodex */
-.tabs{display:flex; gap:6px; padding:4px 18px 0; overflow-x:auto; scrollbar-width:none;}
-.tabs::-webkit-scrollbar{display:none;}
-.tab{flex:0 0 auto; padding:9px 16px 11px; font-size:0.82rem; font-weight:500; color:var(--desk); cursor:pointer; border:none; clip-path:polygon(10% 0,90% 0,100% 100%,0% 100%); transform:translateY(6px); transition:transform 0.15s ease; white-space:nowrap;}
-.tab.active{transform:translateY(0); font-weight:600;}
-.tab .count{opacity:0.65; font-size:0.75em; margin-left:4px;}
-
-/* Entries */
-.entries{padding:16px 18px 100px;}
-.folder-tools{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
-.folder-tools .label{font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-soft);}
-.export-btn{background:var(--brass); color:var(--desk-dark); border:none; padding:7px 14px; border-radius:16px; font-size:0.78rem; font-weight:600; cursor:pointer;}
-.export-hint{font-size:0.72rem; color:var(--ink-soft); margin:-4px 0 12px;}
-
-.card{background:var(--paper); border-radius:5px; padding:13px 14px; margin-bottom:10px; box-shadow:0 4px 10px rgba(0,0,0,0.25); position:relative;}
-.card::after{content:''; position:absolute; bottom:0; right:0; width:0; height:0; border-style:solid; border-width:0 0 12px 12px; border-color:transparent transparent var(--paper-edge) transparent;}
-.card .text{color:var(--ink); font-size:0.95rem; line-height:1.45; white-space:pre-wrap;}
-.card .meta{display:flex; align-items:center; justify-content:space-between; margin-top:8px;}
-.card .time{font-family:'IBM Plex Mono',monospace; font-size:0.7rem; color:var(--ink-soft);}
-.card .chip{display:inline-block; font-size:0.68rem; background:var(--desk); color:var(--paper); padding:2px 8px; border-radius:10px; margin-right:6px;}
-.card .del{background:none; border:none; color:var(--ink-soft); font-size:0.9rem; cursor:pointer; padding:2px 6px;}
-.card .datebar{display:flex; gap:8px; margin-top:8px;}
-.card .datebar input{font-family:'IBM Plex Mono',monospace; font-size:0.78rem; border:1px solid var(--paper-edge); background:#fff; border-radius:4px; padding:5px 6px; color:var(--ink);}
-.card .nodate{font-size:0.72rem; color:var(--danger); margin-top:6px;}
-
-.empty{text-align:center; padding:50px 20px; color:var(--ink-soft);}
-.empty .big{font-size:2.4rem; margin-bottom:8px;}
-
-/* Modal (settings) */
-.modal-bg{position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:none; align-items:flex-end;}
-.modal-bg.show{display:flex;}
-.modal{background:var(--desk); width:100%; max-height:85vh; overflow-y:auto; border-radius:18px 18px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom));}
-.modal h2{font-size:1.15rem; margin-bottom:14px;}
-.modal .close{position:absolute; top:16px; right:18px; background:none; border:none; color:var(--paper); font-size:1.4rem;}
-.folder-row{background:var(--desk-dark); border-radius:10px; padding:12px; margin-bottom:10px;}
-.folder-row .frow-head{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
-.swatch{width:14px; height:14px; border-radius:3px; flex:0 0 auto;}
-.folder-row input[type=text], .folder-row textarea{width:100%; background:var(--desk); border:1px solid #453F38; color:var(--paper); border-radius:6px; padding:7px 9px; font-size:0.85rem; font-family:'IBM Plex Sans',sans-serif; margin-bottom:6px;}
+.sheet-bg{position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:none; align-items:flex-end; -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);}
+.sheet-bg.show{display:flex;}
+.sheet{width:100%; max-height:88vh; overflow-y:auto; border-radius:32px 32px 0 0; padding:10px 18px calc(26px + env(safe-area-inset-bottom)); background:rgba(15,13,20,0.9); -webkit-backdrop-filter: blur(44px) saturate(180%); backdrop-filter: blur(44px) saturate(180%); border-top:1px solid var(--glass-border);}
+.drag-handle{width:40px; height:5px; border-radius:3px; background:rgba(255,255,255,0.35); margin:7px auto 16px;}
+.sheet h2{font-size:1.3rem; font-weight:750; margin:0 0 16px; text-shadow:0 1px 3px rgba(0,0,0,0.4);}
+.sheet h3{font-size:0.95rem; font-weight:700; margin:0 0 10px;}
+.cloud-box{border-radius:var(--radius-sm); padding:15px; margin-bottom:18px;}
+.cloud-code{font-family:'SF Mono', monospace; font-size:1.3rem; font-weight:700; letter-spacing:0.1em; text-align:center; padding:10px; border-radius:10px; background:rgba(255,255,255,0.08); margin:8px 0;}
+.cloud-row{display:flex; gap:8px; margin-top:8px;}
+.cloud-row input{flex:1; margin-bottom:0;}
+.cloud-status{font-size:0.78rem; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-bottom:4px;}
+.folder-row{border-radius:var(--radius-sm); padding:15px; margin-bottom:12px;}
+.folder-row .frow-head{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.swatch{width:18px; height:18px; border-radius:6px; flex:0 0 auto;}
+.folder-row input[type=text], .folder-row textarea{width:100%; background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); color:var(--text-primary); border-radius:9px; padding:9px 11px; font-size:0.92rem; font-family:inherit; margin-bottom:8px;}
 .folder-row textarea{resize:vertical; min-height:40px;}
-.folder-row .frow-foot{display:flex; justify-content:space-between; align-items:center;}
-.small-btn{background:none; border:1px solid #453F38; color:var(--paper); padding:5px 10px; border-radius:14px; font-size:0.72rem; cursor:pointer;}
-.small-btn.danger{color:var(--danger); border-color:var(--danger);}
-.add-folder-btn{width:100%; background:var(--brass); color:var(--desk-dark); border:none; padding:11px; border-radius:10px; font-weight:600; margin-top:6px; cursor:pointer;}
-.color-picker{display:flex; gap:6px; margin-bottom:6px;}
-.color-picker .dot{width:20px; height:20px; border-radius:5px; cursor:pointer; border:2px solid transparent;}
-.color-picker .dot.sel{border-color:var(--paper);}
+.folder-row .frow-foot{display:flex; justify-content:space-between; align-items:center; margin-top:2px;}
+.small-btn{background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); color:var(--text-primary); padding:7px 14px; border-radius:15px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:transform 0.12s ease-out;}
+.small-btn:active{transform:scale(0.93);}
+.small-btn.danger{color:#FF7A8A; border-color:rgba(255,55,95,0.45);}
+.add-folder-btn{width:100%; padding:14px; border-radius:18px; font-weight:750; margin-top:4px; margin-bottom:12px;}
+.color-picker{display:flex; gap:8px; margin-bottom:9px; flex-wrap:wrap;}
+.color-picker .dot{width:24px; height:24px; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:transform 0.12s ease-out;}
+.color-picker .dot:active{transform:scale(0.85);}
+.color-picker .dot.sel{border-color:#fff;}
+.sub-title{font-size:0.74rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-secondary); margin:9px 0 6px; font-weight:700;}
+.sub-chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:8px;}
+.sub-chip{display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); padding:6px 7px 6px 12px; border-radius:13px; font-size:0.8rem;}
+.sub-chip button{background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.9rem; padding:0 3px;}
+.add-sub-row{display:flex; gap:7px;}
+.add-sub-row input{flex:1; margin-bottom:0;}
+
+.onboard-card{border-radius:var(--radius-lg); padding:26px 22px; max-width:420px; margin:auto;}
+.onboard-card h2{margin:0 0 8px;}
+.onboard-card p{color:var(--text-secondary); font-size:0.92rem; line-height:1.5; margin:0 0 16px;}
+
+@media (hover:hover) and (pointer:fine){
+  .glass-btn:hover, .icon-btn:hover, .tab:hover, .chip:hover, .small-btn:hover{ filter:brightness(1.18); }
+  .card:hover{ box-shadow:var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.5), 0 0 0 1px rgba(255,255,255,0.15); }
+}
+
+@media (min-width:700px){
+  .app{max-width:780px;}
+  .top-bar{padding:calc(env(safe-area-inset-top) + 26px) 26px 12px;}
+  .capture-wrap, .tabbar-wrap{padding-left:26px; padding-right:26px;}
+  .chip-row{padding-left:26px; padding-right:26px;}
+  .entries{padding:20px 26px 120px; display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; align-items:start;}
+  .entries .folder-tools, .entries .export-hint, .entries .empty{ grid-column:1 / -1; }
+  .card{margin-bottom:0;}
+}
+
+@media (min-width:1080px){
+  .app{max-width:1040px;}
+  .entries{grid-template-columns:repeat(3, 1fr);}
+  .large-title{font-size:2.7rem;}
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>Gedankenkiste</h1>
-  <div class="sub">Schreib's rein — sie legt's ab.</div>
-  <button class="gear" onclick="openSettings()">⚙︎</button>
+<div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div></div>
+<div class="bg-scrim"></div>
+
+<div class="app">
+  <div class="top-bar">
+    <h1 class="large-title">Gedankenkiste<span class="sub">Schreib's rein — sie legt's ab.</span></h1>
+    <button class="icon-btn glass" onclick="openSettings()">⚙︎</button>
+  </div>
+
+  <div class="capture-wrap">
+    <div class="capture-card glass">
+      <textarea id="captureInput" placeholder="Ein Gedanke, ein Gefühl, ein Termin ... einfach tippen oder diktieren." rows="3" oninput="updatePreview()"></textarea>
+      <div class="preview-pill" id="previewPill"></div>
+      <div class="capture-foot">
+        <div class="mic-hint">🎙️ Mikrofon auf der Tastatur = diktieren</div>
+        <button class="glass-btn primary" onclick="handleCapture()">Ablegen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar-wrap">
+    <div class="tabbar glass" id="tabbar">
+      <div class="tab-indicator" id="tabIndicator"></div>
+    </div>
+  </div>
+  <div class="chip-row" id="chipRow"></div>
+
+  <div class="entries" id="entries"></div>
 </div>
 
-<div class="capture-wrap">
-  <div class="capture-card">
-    <textarea id="captureInput" placeholder="Ein Gedanke, ein Gefühl, ein Termin ... einfach tippen oder diktieren." rows="3"></textarea>
-    <div class="capture-foot">
-      <div class="mic-hint">🎙️ Mikrofon auf der Tastatur = diktieren</div>
-      <button class="file-btn" onclick="handleCapture()">Ablegen</button>
-    </div>
+<div class="toast glass" id="toast"></div>
+
+<div class="sheet-bg" id="modalBg">
+  <div class="sheet">
+    <div class="drag-handle"></div>
+    <h2>Einstellungen</h2>
+
+    <h3>☁️ Cloud-Sync</h3>
+    <div class="cloud-box glass" id="cloudBox"></div>
+
+    <h3 style="margin-top:4px;">Ordner &amp; Unterordner</h3>
+    <div id="folderList"></div>
+    <button class="add-folder-btn glass-btn brass" onclick="addFolderDraft()">+ Neuen Ordner anlegen</button>
+    <button class="glass-btn" style="width:100%; background:rgba(255,255,255,0.12);" onclick="closeSettings()">Fertig</button>
   </div>
 </div>
 
-<div class="tabs" id="tabs"></div>
-<div class="entries" id="entries"></div>
-<div class="toast" id="toast"></div>
-
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <button class="close" onclick="closeSettings()">×</button>
-    <h2>Ordner &amp; Stichwörter</h2>
-    <div id="folderList"></div>
-    <button class="add-folder-btn" onclick="addFolderDraft()">+ Neuen Ordner anlegen</button>
+<div class="sheet-bg" id="onboardBg">
+  <div class="onboard-card glass">
+    <h2>☁️ Auf allen Geräten nutzen?</h2>
+    <p>Erstelle einen Sync-Code auf diesem Gerät und gib ihn auf deinem iPad oder Mac ein — dann teilen sich beide Geräte dieselben Notizen. Wer den Code kennt, sieht die Daten, also wie ein Passwort behandeln.</p>
+    <button class="glass-btn primary" style="width:100%; margin-bottom:10px;" onclick="createSyncCode()">Neuen Code erstellen</button>
+    <div class="cloud-row">
+      <input type="text" id="joinCodeInput" placeholder="...oder vorhandenen Code eingeben" class="glass" style="border-radius:12px; padding:12px 14px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.08); color:#fff; font-size:0.95rem;">
+      <button class="small-btn" onclick="joinSyncCode()">Beitreten</button>
+    </div>
+    <button class="glass-btn" style="width:100%; margin-top:14px; background:rgba(255,255,255,0.08); font-size:0.85rem;" onclick="skipOnboarding()">Nur auf diesem Gerät nutzen</button>
   </div>
 </div>
 
 <script>
-const PALETTE = ['#6B8F71','#B5654A','#4B6E8C','#C9A227','#8B8478','#7A5C8E','#5C8C8C','#A65C5C'];
+const PALETTE = ['#0A84FF','#FF9F0A','#FF375F','#30D158','#BF5AF2','#64D2FF','#8E8E93','#FFD60A'];
+
+/* ---- Firebase (optional Cloud-Sync) ----
+   Um Geräte-übergreifende Synchronisierung zu aktivieren:
+   1. console.firebase.google.com -> Projekt erstellen (kostenlos)
+   2. Web-App hinzufügen (</> Symbol), Konfiguration kopieren
+   3. Firestore Database aktivieren, Regeln testweise auf "allow read, write: if true" setzen
+   4. Die 6 Werte unten einsetzen
+*/
+const FIREBASE_CONFIG = {
+  apiKey: "DEIN_API_KEY",
+  authDomain: "DEIN_PROJEKT.firebaseapp.com",
+  projectId: "DEIN_PROJEKT",
+  storageBucket: "DEIN_PROJEKT.appspot.com",
+  messagingSenderId: "DEINE_SENDER_ID",
+  appId: "DEINE_APP_ID"
+};
+
+let cloudEnabled = false;
+let db = null;
+let syncCode = localStorage.getItem('gedankenkiste-synccode');
+let unsub = null;
+
+try{
+  if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "DEIN_API_KEY" && typeof firebase !== 'undefined'){
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    cloudEnabled = true;
+  }
+}catch(e){ console.warn('Cloud-Sync nicht verfügbar', e); }
 
 const DEFAULT_FOLDERS = [
-  {id:'termine',   name:'Termine',    color:'#C9A227', keywords:['termin','uhr','meeting','treffen','verabredung','sitzung']},
-  {id:'gefuehle',  name:'Gefühle',    color:'#B5654A', keywords:['fühle mich','gefühl','traurig','glücklich','wütend','angst','freude','frustriert','dankbar','überfordert']},
-  {id:'arbeit',    name:'Arbeit',     color:'#4B6E8C', keywords:['arbeit','projekt','kunde','kollege','chef','büro','aufgabe','deadline','job']},
-  {id:'tagesreport',name:'Tagesreport',color:'#6B8F71', keywords:['tagesreport','heute war','rückblick','zusammenfassung tag','mein tag']},
-  {id:'sonstiges', name:'Sonstiges',  color:'#8B8478', keywords:[]}
+  {id:'termine',   name:'Termine',    color:'#FF9F0A', keywords:['termin','uhr','meeting','treffen','verabredung','sitzung'], subfolders:[]},
+  {id:'gefuehle',  name:'Gefühle',    color:'#FF375F', keywords:['fühle mich','gefühl','traurig','glücklich','wütend','angst','freude','frustriert','dankbar','überfordert'], subfolders:[]},
+  {id:'arbeit',    name:'Arbeit',     color:'#0A84FF', keywords:['arbeit','projekt','kunde','kollege','chef','büro','aufgabe','deadline','job'], subfolders:[]},
+  {id:'tagesreport',name:'Tagesreport',color:'#30D158', keywords:['tagesreport','heute war','rückblick','zusammenfassung tag','mein tag'], subfolders:[]},
+  {id:'sonstiges', name:'Sonstiges',  color:'#8E8E93', keywords:[], subfolders:[]}
 ];
 
 let state = {folders: JSON.parse(JSON.stringify(DEFAULT_FOLDERS)), entries: []};
 let activeTab = 'termine';
-let draftFolders = null; // used while settings modal open
+let activeSubfilter = null;
+let draftFolders = null;
+let justAddedId = null;
 
 function loadState(){
   try{
     const raw = localStorage.getItem('gedankenkiste-state');
     if(raw){
       const parsed = JSON.parse(raw);
-      if(parsed.folders && parsed.entries){ state = parsed; }
+      if(parsed.folders && parsed.entries){
+        parsed.folders.forEach(f=>{ if(!f.subfolders) f.subfolders=[]; });
+        state = parsed;
+      }
     }
-  }catch(e){ /* erster Start, noch keine Daten */ }
+  }catch(e){}
   render();
+  if(cloudEnabled && syncCode){ attachCloudSync(); }
+  else if(cloudEnabled && !syncCode){ document.getElementById('onboardBg').classList.add('show'); }
 }
 
 function saveState(){
   try{ localStorage.setItem('gedankenkiste-state', JSON.stringify(state)); }
   catch(e){ console.error('Speichern fehlgeschlagen', e); }
+  if(cloudEnabled && syncCode && db){
+    db.collection('gedankenkiste').doc(syncCode).set({state: JSON.stringify(state), updatedAt: Date.now()}, {merge:true})
+      .catch(e=>console.warn('Cloud-Speichern fehlgeschlagen', e));
+  }
+}
+
+function attachCloudSync(){
+  if(!db || !syncCode) return;
+  if(unsub) unsub();
+  unsub = db.collection('gedankenkiste').doc(syncCode).onSnapshot(doc=>{
+    if(doc.exists){
+      const data = doc.data();
+      if(data && data.state){
+        try{
+          const parsed = JSON.parse(data.state);
+          parsed.folders.forEach(f=>{ if(!f.subfolders) f.subfolders=[]; });
+          state = parsed;
+          localStorage.setItem('gedankenkiste-state', JSON.stringify(state));
+          render();
+        }catch(e){}
+      }
+    } else {
+      db.collection('gedankenkiste').doc(syncCode).set({state: JSON.stringify(state), updatedAt: Date.now()});
+    }
+  }, err=>console.warn('Sync-Fehler', err));
+}
+
+function createSyncCode(){
+  const code = Math.random().toString(36).slice(2,8).toUpperCase();
+  syncCode = code;
+  localStorage.setItem('gedankenkiste-synccode', code);
+  document.getElementById('onboardBg').classList.remove('show');
+  attachCloudSync();
+  saveState();
+  showToast('Sync-Code erstellt: ' + code);
+}
+function joinSyncCode(){
+  const val = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+  if(!val) return;
+  syncCode = val;
+  localStorage.setItem('gedankenkiste-synccode', val);
+  document.getElementById('onboardBg').classList.remove('show');
+  attachCloudSync();
+  showToast('Mit Code verbunden: ' + val);
+}
+function skipOnboarding(){
+  document.getElementById('onboardBg').classList.remove('show');
+}
+function changeSyncCode(){
+  const val = prompt('Neuen Sync-Code eingeben (auf allen Geräten identisch):', syncCode || '');
+  if(val === null) return;
+  const clean = val.trim().toUpperCase();
+  if(!clean) return;
+  syncCode = clean;
+  localStorage.setItem('gedankenkiste-synccode', clean);
+  attachCloudSync();
+  renderCloudBox();
+  showToast('Verbunden mit Code: ' + clean);
+}
+function copySyncCode(){
+  if(!syncCode) return;
+  navigator.clipboard?.writeText(syncCode).then(()=>showToast('Code kopiert'));
+}
+function renderCloudBox(){
+  const box = document.getElementById('cloudBox');
+  if(!cloudEnabled){
+    box.innerHTML = `<div class="cloud-status">⚪️ Cloud-Sync nicht eingerichtet</div><p style="font-size:0.8rem;color:var(--text-secondary);margin:6px 0 0;">Firebase-Konfiguration im Code noch nicht hinterlegt.</p>`;
+    return;
+  }
+  if(!syncCode){
+    box.innerHTML = `<div class="cloud-status">⚪️ Nur lokal auf diesem Gerät</div><button class="small-btn" style="margin-top:8px;" onclick="document.getElementById('onboardBg').classList.add('show')">Sync einrichten</button>`;
+    return;
+  }
+  box.innerHTML = `<div class="cloud-status">🟢 Verbunden</div><div class="cloud-code">${syncCode}</div><div class="cloud-row"><button class="small-btn" onclick="copySyncCode()">Code kopieren</button><button class="small-btn" onclick="changeSyncCode()">Code ändern</button></div>`;
 }
 
 function pad(n){ return n.toString().padStart(2,'0'); }
@@ -164,34 +390,57 @@ function addDays(d,n){ const c=new Date(d); c.setDate(c.getDate()+n); return c; 
 function parseGermanDateTime(text){
   const lower = text.toLowerCase();
   const now = new Date();
-  let date=null, time=null;
-  const weekdays = ['sonntag','montag','dienstag','mittwoch','donnerstag','freitag','samstag'];
+  let date=null;
 
   if(/\bübermorgen\b/.test(lower)) date = formatDate(addDays(now,2));
-  else if(/\bmorgen\b/.test(lower)) date = formatDate(addDays(now,1));
+  else if(/\bmorgen\b/.test(lower) && !/\bmorgens\b/.test(lower)) date = formatDate(addDays(now,1));
   else if(/\bheute\b/.test(lower)) date = formatDate(now);
-  else{
+
+  if(!date){
+    const weekdays = ['sonntag','montag','dienstag','mittwoch','donnerstag','freitag','samstag'];
     for(let i=0;i<weekdays.length;i++){
       if(lower.includes(weekdays[i])){
         let diff = (i - now.getDay() + 7) % 7;
-        if(diff===0) diff=7;
+        if(diff===0) diff = 7;
+        if(/nächste[n]?\s+woche/.test(lower)) diff += 7;
         date = formatDate(addDays(now, diff));
         break;
       }
     }
   }
+
   const dm = lower.match(/\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})?/);
   if(dm){
     const day = +dm[1], month = +dm[2];
     let year = dm[3] ? (dm[3].length===2 ? 2000+ +dm[3] : +dm[3]) : now.getFullYear();
     date = `${year}-${pad(month)}-${pad(day)}`;
   }
-  let tm = lower.match(/(\d{1,2})[:\.](\d{2})\s*uhr?/) || lower.match(/um\s+(\d{1,2})\s*uhr/) || lower.match(/\b(\d{1,2})\s*uhr\b/);
-  if(tm){
-    const hh = +tm[1];
-    const mm = tm[2] ? +tm[2] : 0;
+
+  let hh=null, mm=null, tm;
+  if(tm = lower.match(/viertel\s+vor\s+(\d{1,2})/)){ hh=(+tm[1]+23)%24; mm=45; }
+  else if(tm = lower.match(/viertel\s+nach\s+(\d{1,2})/)){ hh=+tm[1]; mm=15; }
+  else if(tm = lower.match(/halb\s+(\d{1,2})/)){ hh=(+tm[1]+23)%24; mm=30; }
+  else if(tm = lower.match(/(\d{1,2})[:\.](\d{2})\s*uhr?/)){ hh=+tm[1]; mm=+tm[2]; }
+  else if(tm = lower.match(/(\d{1,2})\s*uhr\s*(\d{1,2})?/)){ hh=+tm[1]; mm = tm[2] ? +tm[2] : 0; }
+  else if(tm = lower.match(/\bum\s+(\d{1,2})\b/)){ hh=+tm[1]; mm=0; }
+
+  let time=null;
+  if(hh!==null){
+    if(hh<12 && /abend/.test(lower)) hh+=12;
+    else if(hh<12 && /nachmittag/.test(lower)) hh+=12;
     time = `${pad(hh)}:${pad(mm)}`;
   }
+
+  const relH = lower.match(/in\s+(\d{1,2})\s*stunde/);
+  const relM = lower.match(/in\s+(\d{1,3})\s*minute/);
+  if(relH || relM){
+    const future = new Date(now);
+    if(relH) future.setHours(future.getHours() + (+relH[1]));
+    if(relM) future.setMinutes(future.getMinutes() + (+relM[1]));
+    date = formatDate(future);
+    time = `${pad(future.getHours())}:${pad(future.getMinutes())}`;
+  }
+
   return {date, time};
 }
 
@@ -211,15 +460,41 @@ function categorize(text){
   return 'sonstiges';
 }
 
+function updatePreview(){
+  const input = document.getElementById('captureInput');
+  const pill = document.getElementById('previewPill');
+  const text = input.value.trim();
+  if(!text){ pill.classList.remove('show'); return; }
+  const folderId = categorize(text);
+  const folder = state.folders.find(f=>f.id===folderId);
+  const tag = extractHashtag(text);
+  let label = '→ ' + folder.name;
+  if(tag){
+    const exists = folder.subfolders.some(s=>s.name.toLowerCase()===tag.toLowerCase());
+    label += ' · #' + tag + (exists ? '' : ' (neu)');
+  }
+  pill.textContent = label;
+  pill.style.background = folder.color + '33';
+  pill.style.color = folder.color;
+  pill.classList.add('show');
+}
+
 function handleCapture(){
   const input = document.getElementById('captureInput');
   const text = input.value.trim();
   if(!text) return;
   const folderId = categorize(text);
-  const subfolder = extractHashtag(text);
+  const folder = state.folders.find(f=>f.id===folderId);
+  const tag = extractHashtag(text);
+  let subfolderId = null;
+  if(tag){
+    let sub = folder.subfolders.find(s=>s.name.toLowerCase()===tag.toLowerCase());
+    if(!sub){ sub = {id:'s'+Date.now()+Math.random().toString(36).slice(2,5), name:tag}; folder.subfolders.push(sub); }
+    subfolderId = sub.id;
+  }
   const entry = {
     id: 'e' + Date.now() + Math.random().toString(36).slice(2,6),
-    text, folderId, subfolder,
+    text, folderId, subfolderId,
     createdAt: new Date().toISOString(),
     date: null, time: null
   };
@@ -229,11 +504,13 @@ function handleCapture(){
     entry.time = parsed.time;
   }
   state.entries.unshift(entry);
+  justAddedId = entry.id;
   saveState();
   input.value = '';
+  document.getElementById('previewPill').classList.remove('show');
   activeTab = folderId;
-  const fname = state.folders.find(f=>f.id===folderId)?.name || folderId;
-  showToast(`In "${fname}" abgelegt`);
+  activeSubfilter = null;
+  showToast(`In "${folder.name}" abgelegt`);
   render();
 }
 
@@ -242,7 +519,7 @@ function showToast(msg){
   t.textContent = msg;
   t.classList.add('show');
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
 function deleteEntry(id){
@@ -250,7 +527,6 @@ function deleteEntry(id){
   saveState();
   render();
 }
-
 function updateEntryDate(id, field, value){
   const e = state.entries.find(x=>x.id===id);
   if(e){ e[field] = value; saveState(); }
@@ -258,22 +534,44 @@ function updateEntryDate(id, field, value){
 
 function render(){
   renderTabs();
+  renderChips();
   renderEntries();
 }
 
 function renderTabs(){
-  const wrap = document.getElementById('tabs');
-  wrap.innerHTML = '';
+  const wrap = document.getElementById('tabbar');
+  const indicator = document.getElementById('tabIndicator');
+  wrap.querySelectorAll('.tab').forEach(t=>t.remove());
   state.folders.forEach(f=>{
     const count = state.entries.filter(e=>e.folderId===f.id).length;
     const btn = document.createElement('button');
     btn.className = 'tab' + (activeTab===f.id ? ' active' : '');
-    btn.style.background = f.color;
-    btn.innerHTML = `${f.name}<span class="count">${count}</span>`;
-    btn.onclick = ()=>{ activeTab = f.id; render(); };
+    btn.dataset.id = f.id;
+    btn.innerHTML = `<span class="dot" style="background:${f.color}"></span>${f.name}<span class="count">${count}</span>`;
+    btn.onclick = ()=>{ activeTab = f.id; activeSubfilter = null; render(); };
     wrap.appendChild(btn);
   });
+  requestAnimationFrame(()=>{
+    const activeEl = wrap.querySelector('.tab.active');
+    if(activeEl){
+      indicator.style.width = activeEl.offsetWidth + 'px';
+      indicator.style.transform = `translateX(${activeEl.offsetLeft - 5}px)`;
+    }
+  });
 }
+
+function renderChips(){
+  const row = document.getElementById('chipRow');
+  const folder = state.folders.find(f=>f.id===activeTab);
+  if(!folder || folder.subfolders.length===0){ row.innerHTML=''; return; }
+  let html = `<div class="chip ${activeSubfilter===null?'active':''}" onclick="setSubfilter(null)">Alle</div>`;
+  folder.subfolders.forEach(s=>{
+    const count = state.entries.filter(e=>e.folderId===activeTab && e.subfolderId===s.id).length;
+    html += `<div class="chip ${activeSubfilter===s.id?'active':''}" onclick="setSubfilter('${s.id}')">#${s.name} <span style="opacity:.65">${count}</span></div>`;
+  });
+  row.innerHTML = html;
+}
+function setSubfilter(id){ activeSubfilter = id; renderChips(); renderEntries(); }
 
 function escapeICS(str){
   return str.replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
@@ -283,10 +581,7 @@ function exportAllTermine(){
   const items = state.entries.filter(e=>e.folderId==='termine');
   const withDate = items.filter(e=>e.date);
   const withoutDate = items.length - withDate.length;
-  if(withDate.length===0){
-    showToast('Keine Termine mit Datum zum Exportieren');
-    return;
-  }
+  if(withDate.length===0){ showToast('Keine Termine mit Datum zum Exportieren'); return; }
   let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Gedankenkiste//DE\r\nCALSCALE:GREGORIAN\r\n';
   withDate.forEach(e=>{
     const time = e.time || '09:00';
@@ -304,35 +599,34 @@ function exportAllTermine(){
   const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'termine.ics';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = url; a.download = 'termine.ics';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 3000);
-  showToast(withoutDate>0 ? `${withDate.length} Termine exportiert, ${withoutDate} ohne Datum übersprungen` : `${withDate.length} Termine exportiert`);
+  showToast(withoutDate>0 ? `${withDate.length} Termine exportiert, ${withoutDate} ohne Datum` : `${withDate.length} Termine exportiert`);
 }
 
 function renderEntries(){
   const wrap = document.getElementById('entries');
   const folder = state.folders.find(f=>f.id===activeTab);
-  const items = state.entries.filter(e=>e.folderId===activeTab);
+  let items = state.entries.filter(e=>e.folderId===activeTab);
+  if(activeSubfilter) items = items.filter(e=>e.subfolderId===activeSubfilter);
 
   let html = '';
   if(activeTab==='termine'){
-    html += `<div class="folder-tools"><span class="label">${items.length} Eintrag(e)</span><button class="export-btn" onclick="exportAllTermine()">Alle Termine exportieren</button></div>`;
-    html += `<div class="export-hint">Erzeugt eine Datei mit allen erkannten Terminen. Nach dem Download antippen, um sie gesammelt in den Kalender zu übernehmen.</div>`;
+    html += `<div class="folder-tools"><span class="label">${items.length} Eintrag(e)</span><button class="glass-btn brass" style="padding:9px 16px; font-size:0.84rem;" onclick="exportAllTermine()">Alle Termine exportieren</button></div>`;
+    html += `<div class="export-hint">Erzeugt eine Datei mit allen erkannten Terminen. Danach antippen, um sie gesammelt in den Kalender zu übernehmen.</div>`;
   }
-
   if(items.length===0){
     wrap.innerHTML = html + `<div class="empty"><div class="big">🗂️</div>Noch nichts in „${folder?.name || ''}“.</div>`;
+    justAddedId = null;
     return;
   }
-
   items.forEach(e=>{
     const d = new Date(e.createdAt);
     const stamp = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} · ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    html += `<div class="card">
+    const sub = folder.subfolders.find(s=>s.id===e.subfolderId);
+    const flyClass = (e.id === justAddedId) ? ' fly-in' : '';
+    html += `<div class="card glass${flyClass}">
       <div class="text">${e.text.replace(/</g,'&lt;')}</div>`;
     if(activeTab==='termine'){
       html += `<div class="datebar">
@@ -342,23 +636,22 @@ function renderEntries(){
       if(!e.date) html += `<div class="nodate">Kein Datum erkannt — bitte oben ergänzen</div>`;
     }
     html += `<div class="meta">
-        <span>${e.subfolder ? `<span class="chip">#${e.subfolder}</span>` : ''}<span class="time">${stamp}</span></span>
+        <span>${sub ? `<span class="chip-tag">#${sub.name}</span>` : ''}<span class="time">${stamp}</span></span>
         <button class="del" onclick="deleteEntry('${e.id}')">löschen</button>
       </div>
     </div>`;
   });
   wrap.innerHTML = html;
+  justAddedId = null;
 }
 
-/* ---- Settings ---- */
 function openSettings(){
   draftFolders = JSON.parse(JSON.stringify(state.folders));
+  renderCloudBox();
   renderSettings();
   document.getElementById('modalBg').classList.add('show');
 }
-function closeSettings(){
-  document.getElementById('modalBg').classList.remove('show');
-}
+function closeSettings(){ document.getElementById('modalBg').classList.remove('show'); }
 function saveSettings(){
   state.folders = draftFolders.filter(f=>f.name.trim().length>0);
   saveState();
@@ -369,7 +662,11 @@ function renderSettings(){
   wrap.innerHTML = '';
   draftFolders.forEach((f, idx)=>{
     const row = document.createElement('div');
-    row.className = 'folder-row';
+    row.className = 'folder-row glass';
+    let subHtml = '';
+    if(f.subfolders.length){
+      subHtml = '<div class="sub-chip-row">' + f.subfolders.map(s=>`<span class="sub-chip">#${s.name}<button onclick="removeSubfolder(${idx},'${s.id}')">×</button></span>`).join('') + '</div>';
+    }
     row.innerHTML = `
       <div class="frow-head">
         <span class="swatch" style="background:${f.color}"></span>
@@ -377,6 +674,12 @@ function renderSettings(){
       </div>
       <textarea placeholder="Stichwörter, mit Komma getrennt" onchange="updateDraft(${idx},'keywords',this.value)">${f.keywords.join(', ')}</textarea>
       <div class="color-picker">${PALETTE.map(c=>`<span class="dot ${c===f.color?'sel':''}" style="background:${c}" onclick="updateDraft(${idx},'color','${c}')"></span>`).join('')}</div>
+      <div class="sub-title">Unterordner</div>
+      ${subHtml}
+      <div class="add-sub-row">
+        <input type="text" id="newsub-${idx}" placeholder="Neuer Unterordner...">
+        <button class="small-btn" onclick="addSubfolder(${idx})">+ Hinzufügen</button>
+      </div>
       <div class="frow-foot">
         <span></span>
         ${f.id!=='sonstiges' ? `<button class="small-btn danger" onclick="removeDraft(${idx})">Ordner löschen</button>` : '<span></span>'}
@@ -385,13 +688,24 @@ function renderSettings(){
   });
 }
 function updateDraft(idx, field, value){
-  if(field==='keywords'){
-    draftFolders[idx].keywords = value.split(',').map(s=>s.trim()).filter(Boolean);
-  } else {
-    draftFolders[idx][field] = value;
-  }
+  if(field==='keywords'){ draftFolders[idx].keywords = value.split(',').map(s=>s.trim()).filter(Boolean); }
+  else { draftFolders[idx][field] = value; }
   if(field==='color') renderSettings();
   saveSettings();
+}
+function addSubfolder(idx){
+  const input = document.getElementById('newsub-'+idx);
+  const name = input.value.trim();
+  if(!name) return;
+  draftFolders[idx].subfolders.push({id:'s'+Date.now()+Math.random().toString(36).slice(2,5), name});
+  saveSettings();
+  renderSettings();
+}
+function removeSubfolder(idx, subId){
+  draftFolders[idx].subfolders = draftFolders[idx].subfolders.filter(s=>s.id!==subId);
+  state.entries.forEach(e=>{ if(e.subfolderId===subId) e.subfolderId=null; });
+  saveSettings();
+  renderSettings();
 }
 function removeDraft(idx){
   const removedId = draftFolders[idx].id;
@@ -403,12 +717,13 @@ function removeDraft(idx){
 }
 function addFolderDraft(){
   const id = 'f' + Date.now();
-  draftFolders.push({id, name:'Neuer Ordner', color: PALETTE[draftFolders.length % PALETTE.length], keywords:[]});
+  draftFolders.push({id, name:'Neuer Ordner', color: PALETTE[draftFolders.length % PALETTE.length], keywords:[], subfolders:[]});
   saveSettings();
   renderSettings();
 }
 
 loadState();
+window.addEventListener('resize', ()=>renderTabs());
 </script>
 </body>
 </html>
